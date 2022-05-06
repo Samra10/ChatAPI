@@ -15,6 +15,18 @@ class ApplicationsController < ApplicationController
     response_json @application
   end
 
+  def show
+    @application = Application.find_by!(application_token: params[:application_token])
+    response_json @application
+  end
+
+  def update
+    @application = Application.find_by!(application_token: params[:application_token])
+    @application.update(application_params)
+    response_json @application
+  end
+
+
 
   private
 
