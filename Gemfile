@@ -46,3 +46,16 @@ group :development do
   # gem "spring"
 end
 
+
+gem "mysql2", "~> 0.5.4"
+
+gem "sidekiq"
+gem 'sidekiq-scheduler'
+
+gem 'redis'
+gem 'redis-namespace'
+gem 'redis-rails'
+gem 'redis-rack-cache'
+
+gem 'elasticsearch-model'
+gem 'elasticsearch-rails'
