@@ -30,7 +30,7 @@ services:
       - "9200"
 
   chat-api:
-    build: ./ChatAPI
+    build: ./
     restart: always
     depends_on:
       - "db"
