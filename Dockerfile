@@ -1,4 +1,4 @@
-FROM ruby:3.1.2-alpine
+FROM ruby:3.1.2
 
 # Default directory
 RUN mkdir /chat-api 
@@ -10,6 +10,8 @@ COPY . .
 
 COPY docker-entrypoint.sh /usr/bin/
 RUN chmod +x /usr/bin/docker-entrypoint.sh
+COPY wait-for-it.sh /usr/bin/
+RUN chmod +x /usr/bin/wait-for-it.sh
 
 ENTRYPOINT [ "docker-entrypoint.sh" ]
 EXPOSE 3000
