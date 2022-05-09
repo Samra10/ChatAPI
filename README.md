@@ -46,7 +46,7 @@ Response
 ```
 Then create new Chat:
 - [ ] ToDo/ Add Golang endpoint for creating new messages
-```POST  /applications/{application_token}/chats/```
+- ```POST  /applications/{application_token}/chats/```
 
 Then create new message:
 - [ ] ToDo/ Add Golang endpoint for creating new messages
