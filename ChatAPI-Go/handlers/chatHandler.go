@@ -1,17 +1,19 @@
 package handlers
 
 import (
-	"net/http"
-	"strings"
-
 	"ChatAPI/GoChat/configs"
-
+	"ChatAPI/GoChat/redis"
+	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/imroc/req"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
 )
 
 type chatResponse struct {
-	Number           int    `json:"number"`
+	Number           int64  `json:"number"`
 	ApplicationToken string `json:"application_token"`
 }
 
@@ -20,36 +22,71 @@ type appsResponse struct {
 	ApplicationToken string `json:"application_token"`
 	CreatedAt        string `json:"created_at"`
 	UpdatedAt        string `json:"updated_at"`
-	ChatsCount       int    `json:"chats_count"`
-}
-
-var appsChach = map[string]int{
-	"123456789": 0,
-	"987654321": 0,
+	ChatsCount       int64  `json:"chats_count"`
 }
 
 func CreateChat(c *gin.Context) {
 
-	var newChat chatResponse
-
 	applicationToken := c.Param("application_token")
 
-	//check if the applicationToken on the cach
-	if val, ok := appsChach[applicationToken]; ok {
+	// Get redis client from redis package
+	redisClient := redis.GetRedisClient()
+	// Get the redis lock to prevent race condition
+	redisLocker := redis.GetRedisLocker()
+	ctx := context.Background()
 
-		//update number of chats
-		appsChach[applicationToken] = val + 1
-		val = val + 1
+	//create the key
+	key := "Chats" + applicationToken
 
-		newChat.ApplicationToken = applicationToken
-		newChat.Number = val
+	// Try to obtain lock.
+	lock, err := redisLocker.Obtain(ctx, key, 100*time.Millisecond, nil)
+	if err != nil {
 
-		//return new chat
-		c.IndentedJSON(http.StatusCreated, newChat)
+		defer lock.Release(ctx)
+		c.IndentedJSON(http.StatusInternalServerError, err)
 		return
 	}
-	//return if application token not found
-	c.IndentedJSON(http.StatusNotFound, gin.H{"Error": "ApplicationToken not found"})
+
+	//check if the key exist
+	exist, err := redisClient.Exists(key).Result()
+	if err != nil {
+		defer lock.Release(ctx)
+		c.IndentedJSON(http.StatusInternalServerError, err)
+		return
+	} else if exist == 0 {
+		// Key not Exist, Get the chat counts from Rails API
+		resp, err := GetChatData(applicationToken)
+		if err != nil {
+			defer lock.Release(ctx)
+			c.IndentedJSON(http.StatusInternalServerError, err)
+			return
+		}
+		//set the key with chat counts
+		redisClient.Set(key, resp.ChatsCount, 0)
+	}
+	//Increase the Chact counts
+	nextChatNumber, err := redisClient.Incr(key).Result()
+	defer lock.Release(ctx)
+
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	// push update to workers
+	err = redis.PushToRedis(configs.ChatQueue, configs.ChatWorker, applicationToken, strconv.FormatInt(nextChatNumber, 10))
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	// send response
+	newChat := chatResponse{
+		Number:           nextChatNumber,
+		ApplicationToken: applicationToken,
+	}
+	c.IndentedJSON(http.StatusCreated, newChat)
+
 }
 
 func GetChatData(applicationToken string) (appsResponse, error) {
