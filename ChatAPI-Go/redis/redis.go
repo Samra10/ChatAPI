@@ -2,9 +2,11 @@ package redis
 
 import (
 	"ChatAPI/GoChat/configs"
+	"context"
 	"encoding/json"
+
 	"github.com/bsm/redislock"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 )
 
 //to prevent create new client on each call
@@ -43,7 +45,7 @@ func GetRedisLocker() *redislock.Client {
 	return redisLocker
 }
 
-func PushToRedis(queue string, class string, args ...string) error {
+func PushToRedis(ctx context.Context, queue string, class string, args ...string) error {
 	job := sidekiqJob{
 		Class: class,
 		Args:  args,
@@ -60,6 +62,6 @@ func PushToRedis(queue string, class string, args ...string) error {
 		return err
 	}
 
-	_, err = redisClient.RPush("queue:"+queue, jobBytes).Result()
+	_, err = redisClient.RPush(ctx, "queue:"+queue, jobBytes).Result()
 	return err
 }

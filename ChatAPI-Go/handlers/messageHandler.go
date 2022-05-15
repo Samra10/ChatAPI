@@ -3,6 +3,7 @@ package handlers
 import (
 	"ChatAPI/GoChat/configs"
 	"ChatAPI/GoChat/redis"
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -35,6 +36,8 @@ func AddMessage(c *gin.Context) {
 	applicationToken := c.Param("application_token")
 	chatNumber := c.Param("chat_number")
 
+	ctx := context.Background()
+
 	messageBody, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, err)
@@ -52,7 +55,7 @@ func AddMessage(c *gin.Context) {
 	redisClient := redis.GetRedisClient()
 	key := "MSG" + applicationToken + "_" + chatNumber
 
-	exists, err := redisClient.Exists(key).Result()
+	exists, err := redisClient.Exists(ctx, key).Result()
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, err)
 		return
@@ -63,17 +66,17 @@ func AddMessage(c *gin.Context) {
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			return
 		}
-		redisClient.Set(key, chatsResponse.MessagesCount, 0)
+		redisClient.Set(ctx, key, chatsResponse.MessagesCount, 0)
 	}
 	//Increase the messages counts
-	nextMessageNumber, err := redisClient.Incr(key).Result()
+	nextMessageNumber, err := redisClient.Incr(ctx, key).Result()
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, err)
 		return
 	}
 
 	// push update to workers
-	err = redis.PushToRedis(configs.MessagesQueue, configs.MessagesWorker, applicationToken, chatNumber, strconv.FormatInt(nextMessageNumber, 10), req.MessageBody)
+	err = redis.PushToRedis(ctx, configs.MessagesQueue, configs.MessagesWorker, applicationToken, chatNumber, strconv.FormatInt(nextMessageNumber, 10), req.MessageBody)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, err)
 		return

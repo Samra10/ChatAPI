@@ -4,12 +4,13 @@ import (
 	"ChatAPI/GoChat/configs"
 	"ChatAPI/GoChat/redis"
 	"context"
-	"github.com/gin-gonic/gin"
-	"github.com/imroc/req"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/imroc/req"
 )
 
 type chatResponse struct {
@@ -28,7 +29,6 @@ type ApiAppsResponse struct {
 func CreateChat(c *gin.Context) {
 
 	applicationToken := c.Param("application_token")
-
 	// Get redis client from redis package
 	redisClient := redis.GetRedisClient()
 	// Get the redis lock to prevent race condition
@@ -48,7 +48,7 @@ func CreateChat(c *gin.Context) {
 	}
 
 	//check if the key exist
-	exist, err := redisClient.Exists(key).Result()
+	exist, err := redisClient.Exists(ctx, key).Result()
 	if err != nil {
 		defer lock.Release(ctx)
 		c.IndentedJSON(http.StatusInternalServerError, err)
@@ -62,10 +62,10 @@ func CreateChat(c *gin.Context) {
 			return
 		}
 		//set the key with chat counts
-		redisClient.Set(key, resp.ChatsCount, 0)
+		redisClient.Set(ctx, key, resp.ChatsCount, 0)
 	}
 	//Increase the Chact counts
-	nextChatNumber, err := redisClient.Incr(key).Result()
+	nextChatNumber, err := redisClient.Incr(ctx, key).Result()
 	defer lock.Release(ctx)
 
 	if err != nil {
@@ -74,7 +74,7 @@ func CreateChat(c *gin.Context) {
 	}
 
 	// push update to workers
-	err = redis.PushToRedis(configs.ChatQueue, configs.ChatWorker, applicationToken, strconv.FormatInt(nextChatNumber, 10))
+	err = redis.PushToRedis(ctx, configs.ChatQueue, configs.ChatWorker, applicationToken, strconv.FormatInt(nextChatNumber, 10))
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, err)
 		return
