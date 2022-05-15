@@ -17,7 +17,7 @@ type chatResponse struct {
 	ApplicationToken string `json:"application_token"`
 }
 
-type appsResponse struct {
+type ApiAppsResponse struct {
 	Name             string `json:"name"`
 	ApplicationToken string `json:"application_token"`
 	CreatedAt        string `json:"created_at"`
@@ -36,7 +36,7 @@ func CreateChat(c *gin.Context) {
 	ctx := context.Background()
 
 	//create the key
-	key := "Chats" + applicationToken
+	key := "CHATS" + applicationToken
 
 	// Try to obtain lock.
 	lock, err := redisLocker.Obtain(ctx, key, 100*time.Millisecond, nil)
@@ -89,9 +89,9 @@ func CreateChat(c *gin.Context) {
 
 }
 
-func GetChatData(applicationToken string) (appsResponse, error) {
+func GetChatData(applicationToken string) (ApiAppsResponse, error) {
 
-	var response appsResponse
+	var response ApiAppsResponse
 
 	//get Chats Data from Rails API
 	resp, err := req.Get(strings.Replace(configs.AppAPIUrl+configs.ChatsRoute, "{application_token}", applicationToken, 1))
