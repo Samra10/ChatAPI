@@ -9,8 +9,8 @@ COPY go.mod ./
 COPY go.sum ./
 RUN go mod download
 
-RUN mkdir /go/src/github.com/samra10/
-RUN mkdir /go/src/github.com/samra10/chat-api-go
+
+RUN mkdir -p /go/src/github.com/samra10/chat-api-go
 
 COPY . /go/src/github.com/samra10/chat-api-go
 

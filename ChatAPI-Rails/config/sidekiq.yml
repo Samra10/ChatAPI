@@ -4,5 +4,5 @@
   - index
 
 :schedule:
-  RefreshIndexesWorker:
+  IndexesWorker:
     every: '60s'
