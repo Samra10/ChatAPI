@@ -42,7 +42,7 @@ services:
       - "3000:3000"
 
   chat-api-go:
-    build: ./chat-api-go
+    build: ./ChatAPI-Go
     restart: always
     depends_on:
       - "redis"
