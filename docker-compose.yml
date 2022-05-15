@@ -40,3 +40,14 @@ services:
       - ".:/chat-api"
     ports:
       - "3000:3000"
+
+  chat-api-go:
+    build: ./chat-api-go
+    restart: always
+    depends_on:
+      - "redis"
+    volumes:
+      - ".:/chat-api-go"
+    ports:
+      - "8080:8080"
+  
