@@ -10,6 +10,8 @@ services:
     environment:
        MYSQL_HOST: db
        MYSQL_ROOT_PASSWORD: root
+    cap_add:
+      - SYS_NICE
     expose:
       - "3306"
     
@@ -25,7 +27,8 @@ services:
     image: elasticsearch:7.17.3
     restart: always
     environment:
-      ELASTICSEARCH_HOST: elasticsearch
+      - "ELASTICSEARCH_HOST=lasticsearch"
+      - "discovery.type=single-node"
     expose:
       - "9200"
 

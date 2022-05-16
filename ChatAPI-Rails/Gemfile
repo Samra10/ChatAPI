@@ -59,3 +59,5 @@ gem 'redis-rack-cache'
 
 gem 'elasticsearch-model'
 gem 'elasticsearch-rails'
+
+gem 'rspec-rails'

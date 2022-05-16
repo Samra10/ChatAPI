@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd /go/src/github.com/samra10/chat-api-go/cmd/chat-api-go/chat-api-go
+cd /go/src/github.com/samra10/chat-api-go
 
 go build
 

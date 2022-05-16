@@ -24,4 +24,4 @@ ENTRYPOINT [ "entrypoint-go.sh" ]
 
 EXPOSE 8080
 
-CMD ["/go/src/github.com/samra10/chat-api-go/cmd/chat-api-go/chat-api-go"]
+CMD ["go", "run", "."]
