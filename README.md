@@ -74,3 +74,18 @@ Then create new message:
   "application_token": "bs2oCw18zFGVUJmCAmTFhuBN"
 }
  ```
+
+Search for chat messages
+```
+ GET 'http://localhost:3000/applications/bs2oCw18zFGVUJmCAmTFhuBN/chats/1/messages/search?keyword=New'
+
+# output
+[
+  {
+    "number": 1,
+    "body": "New Messages",
+    "created_at": "2022-01-01T01:10:00.351Z",
+    "updated_at": "2022-01-01T01:10:00.351Z"
+  }
+]
+```
