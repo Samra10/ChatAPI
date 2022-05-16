@@ -28,7 +28,7 @@ GET   /applications/{application_token}/chats/{chat_number}/messages/search?keyw
 PUT   /applications/{application_token}/chats/{chat_number}/messages/{message_number}?body={message_body}
 ```
 
-### Rails API availble end points
+### Go API availble end points
 ```
 - Applications end points
 
